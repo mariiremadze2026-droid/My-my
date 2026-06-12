@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ანბანის ფორტუნა</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1a1a1a;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* მთავარი კონტეინერი */
+        .wheel-container {
+            position: relative;
+            width: 550px;
+            height: 550px;
+            margin-bottom: 30px;
+        }
+
+        /* ანბანის დაფა */
+        .clock-face {
+            width: 100%;
+            height: 100%;
+            border: 8px solid #fff;
+            border-radius: 50%;
+            position: relative;
+            background-color: #2c3e50;
+            box-shadow: 0 0 25px rgba(0,0,0,0.6);
+            box-sizing: border-box;
+        }
+
+        /* ცენტრალური წერტილი */
+        .clock-face::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            background-color: #e74c3c;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        /* ასოების სტილი */
+        .letter {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ecf0f1;
+            padding: 15px;
+            box-sizing: border-box;
+            transform-origin: center center;
+        }
+
+        /* მბრუნავი ისარი */
+        .pointer-hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            width: 6px;
+            height: 220px;
+            background-color: #e74c3c;
+            transform-origin: bottom center;
+            margin-left: -3px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            z-index: 5;
+            /* ტრანზიცია რბილი გაჩერებისთვის (cubic-bezier აკეთებს დამუხრუჭების ეფექტს) */
+            transition: transform 15s cubic-bezier(0.1, 0.8, 0.1, 1);
+        }
+
+        /* ისრის წვერი უკეთესი ვიზუალისთვის */
+        .pointer-hand::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -5px;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 12px solid #e74c3c;
+        }
+
+        /* დატრიალების ღილაკი */
+        .spin-btn {
+            padding: 12px 35px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            background-color: #27ae60;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: 0.2s ease;
+        }
+
+        .spin-btn:hover {
+            background-color: #2ecc71;
+            transform: scale(1.05);
+        }
+
+        .spin-btn:disabled {
+            background-color: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wheel-container">
+        <div class="clock-face" id="clockFace">
+            <div class="pointer-hand" id="pointer"></div>
+            </div>
+    </div>
+
+    <button class="spin-btn" id="spinBtn" onclick="spinPointer()">დაატრიალე (15 წამი)</button>
+
+    <script>
+        const alphabet = ["ა", "ბ", "გ", "დ", "ე", "ვ", "ზ", "ჱ", "თ", "ი", "კ", "ლ", "მ", "ნ", "ჲ", "ო", "პ", "ჟ", "რ", "ს", "ტ", "ჳ", "უ", "ფ", "ქ", "ღ", "ყ", "შ", "ჩ", "ც", "ძ", "წ", "ჭ", "ხ", "ჴ", "ჯ", "ჰ", "ჵ"];
+        // ვიყენებთ თანამედროვე 33 ასოს
+        const modernAlphabet = ["ა", "ბ", "გ", "დ", "ე", "ვ", "ზ", "თ", "ი", "კ", "ლ", "მ", "ნ", "ო", "პ", "ჟ", "რ", "ს", "ტ", "უ", "ფ", "ქ", "ღ", "ყ", "შ", "ჩ", "ც", "ძ", "წ", "ჭ", "ხ", "ჯ", "ჰ"];
+        
+        const clockFace = document.getElementById('clockFace');
+        const pointer = document.getElementById('pointer');
+        const spinBtn = document.getElementById('spinBtn');
+
+        const totalLetters = modernAlphabet.length;
+        const degreeStep = 360 / totalLetters; // გრადუსული ბიჯი ასოებს შორის
+
+        // ასოების წრიულად განლაგება
+        modernAlphabet.forEach((letter, index) => {
+            const letterDiv = document.createElement('div');
+            letterDiv.className = 'letter';
+            
+            // თითოეულ ასოს ვატრიალებთ თავის კუთხით
+            const currentDegree = index * degreeStep;
+            letterDiv.style.transform = `rotate(${currentDegree}deg)`;
+            
+            // შიდა ტექსტს ვატრიალებთ უკან, რომ სწორად იკითხებოდეს
+            letterDiv.innerHTML = `<div style="transform: rotate(${-currentDegree}deg);">${letter}</div>`;
+            
+            clockFace.appendChild(letterDiv);
+        });
+
+        let currentRotation = 0;
+
+        function spinPointer() {
+            // ღილაკის გათიშვა ტრიალის დროს
+            spinBtn.disabled = true;
+
+            // მინიმუმ 10 სრული წრე (3600 გრადუსი) + შემთხვევითი ასოს კუთხე
+            const extraRounds = 10 * 360; 
+            const randomLetterExchange = Math.floor(Math.random() * totalLetters);
+            const targetDegree = randomLetterExchange * degreeStep;
+
+            // ახალი საბოლოო გრადუსი
+            currentRotation += extraRounds + targetDegree - (currentRotation % 360);
+
+            // ისრის დატრიალება
+            pointer.style.transform = `rotate(${currentRotation}deg)`;
+
+            // 15 წამის შემდეგ ღილაკის გააქტიურება
+            setTimeout(() => {
+                spinBtn.disabled = false;
+            }, 15000); // 15000 მილიწამი = 15 წამი
+        }
+    </script>
+</body>
+</html>
